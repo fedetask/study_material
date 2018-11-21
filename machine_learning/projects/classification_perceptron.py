@@ -31,7 +31,9 @@ if __name__ == "__main__":
             plt.scatter(point[0], point[1], c="blue")
 
 x = np.array(range(1,10))
-print(float(-theta[0]/theta[1]))
 y = np.multiply(-theta[0]/theta[1], x)
+
+print("The boundary equation is ", (-theta[0]/theta[1]), " x ")
+
 plt.plot(x,y)
 plt.show()
