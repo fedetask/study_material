@@ -6,3 +6,7 @@ For each topic I will add a folder with the topics name. Its content could be te
 
 Hope this will be useful to someone else
 
+## BLOG
+I created a blog! [fedetask useless blog](fedetask.com)
+
+In this blog I will write educational content about things I'm learning 
