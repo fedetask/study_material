@@ -1,17 +1,5 @@
 graphDiv = 'myDiv'
 
-var layout = {
-  autosize: true,
-  xaxis: {
-    rangemode: 'tozero',
-    autorange: false
-  },
-  yaxis: {
-    rangemode: 'tozero',
-    autorange: false
-  }
-};
-
 let scatter = {
   x: [3, 4, 5, 6, 8, 10,],
   y: [3, 5, 3.5, 7, 9.2, 9],
@@ -23,7 +11,7 @@ let emptyLine = {
   x: [],
   y: [],
   mode: 'lines'
-  }
+}
 
 result = gradientDescent(scatter.x, scatter.y, false)
 currLine = getLine(result.m, result.q)
@@ -97,7 +85,6 @@ function gradientDescent(pointsx, pointsy, animate) {
   let q = 0;
   let learningRate = 0.5
   let numIterations = 0
-  
   while (true) {
 	  if(animate){
 		animateLine(m,q)
@@ -149,6 +136,7 @@ function addPoint() {
   
   scatter.x.push(newx)
   scatter.y.push(newy)
+  
   createGraph(scatter, currLine)
   
   //if (scatter.x <= 1) {
@@ -187,30 +175,26 @@ function getLine(m, q) {
   return line
 }
 
-function createGraph(scatter, line, rangeStart, rangeEnd) {
+function createGraph(scatter, line) {
+	minX = Math.min(...scatter.x)
+	maxX = Math.max(...scatter.x)
+	minY = Math.min(...scatter.y)
+	maxY = Math.max(...scatter.y)
+	
+	minX = minX > 0 ? 0 : minX*0.8 
+	maxX = maxX < 0 ? 0 : maxX*1.2
+	minY = minY > 0 ? 0 : minY*0.8
+	maxY = maxY < 0 ? 0 : maxY*1.2
+	console.log('rangex: '+minX+','+maxX+'    rangey: '+minY+','+maxY)
+	let layout = {
+		autosize: false,
+		xaxis: {range: [minX, maxX]},
+		yaxis: {range: [minY, maxY]}
+	}
 	Plotly.newPlot(graphDiv, [scatter, line], layout, {responsive: true});
-}
-function createStaticGraph(scatter, line) {
-	let staticLayout = {
-	autosize: false,
-	xaxis: {
-		rangemode: 'tozero',
-		autorange: false
-	},
-	yaxis: {
-		rangemode: 'tozero',
-		autorange: false
-	}
-	}
-	Plotly.newPlot(graphDiv, [scatter, line], staticLayout, {responsive: true});
 }
 
 function runAnimation(){
-	console.log('Animating . . .')
-	createStaticGraph(scatter, currLine)
-	let result = gradientDescent(scatter.x, scatter.y, true)
-	console.log('Iterations required: '+result.iterations+'  m='+result.m+'  q='+result.q)
-	let steps = Math.ceil(result.iterations / 15)
 	gradientDescent(scatter.x, scatter.y, true)
 }
 
