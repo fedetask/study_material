@@ -1,20 +1,33 @@
 graphDiv = 'myDiv'
 
-var scatter = {
-  x: [],
-  y: [],
+var layout = {
+  autosize: true,
+  xaxis: {
+    rangemode: 'tozero',
+    autorange: false
+  },
+  yaxis: {
+    rangemode: 'tozero',
+    autorange: false
+  }
+};
+
+let scatter = {
+  x: [3, 4, 5, 6, 8, 10,],
+  y: [3, 5, 3.5, 7, 9.2, 9],
   mode: 'markers',
   type: 'scatter'
 }
 
-var line = {
+let emptyLine = {
   x: [],
   y: [],
   mode: 'lines'
-}
+  }
 
-var data = [scatter]
-Plotly.newPlot(graphDiv, data);
+result = gradientDescent(scatter.x, scatter.y, false)
+currLine = getLine(result.m, result.q)
+createGraph(scatter, currLine)
 
 /* Our cost function is given by the sum of the squared errors:
  * for each (x,y), we calculate the hypothesis h(x) and the error h(x) - y
@@ -26,14 +39,13 @@ Plotly.newPlot(graphDiv, data);
  * @param {q}       current q value of the hypothesys
  * @return          cost for the given points and hypothesis
  */
-function cost(points, m, q) {
-  let n = points.length
+function cost(pointsx, pointsy, m, q) {
+  let n = pointsx.length
   let totalCost = 0
 
   for (var i = 0; i < n; i++) {
-    let point = points[i]
-    let h = point.x * m + q
-    totalCost += Math.pow(h - point.y, 2)
+    let h = pointsx[i] * m + q
+    totalCost += Math.pow(h - pointsy[i], 2)
   }
   return totalCost / (2 * n)
 }
@@ -80,39 +92,144 @@ function update(pointsx, pointsy, m, q, learningRate) {
  * @param learningRate learning rate parameter that the derivative is multiplied for
  * @param iterations   number of iterations to do
  */
-function gradientDescent(pointsx, pointsy, learningRate, iterations) {
+function gradientDescent(pointsx, pointsy, animate) {
   let m = 0;
   let q = 0;
-  for (let i = 0; i < iterations; i++) {
-    updated = update(pointsx, pointsy, m, q, learningRate)
-    m = updated.newm
-    q = updated.newq
+  let learningRate = 0.5
+  let numIterations = 0
+  
+  while (true) {
+	  if(animate){
+		animateLine(m,q)
+	  }
+	  let prevCost = cost(pointsx, pointsy, m, q) //Cost for the current values of m and q
+	  let updated = update(pointsx, pointsy, m, q, learningRate) // Calculating new values for m and q
+	  let newCost = cost(pointsx, pointsy, updated.newm, updated.newq) // Cost after update
+	  
+	  numIterations ++
+	  
+	  while(newCost > prevCost) { // If the cost doesn't decrease, we reduce the learning rate
+		  learningRate = learningRate/2
+		  updated = update(pointsx, pointsy, m, q, learningRate)
+		  newCost = cost(pointsx, pointsy, updated.newm, updated.newq) // Until new cost is lower
+	  }
+	  
+	  m = updated.newm
+	  q = updated.newq
+	  currLine = getLine(m, q)
+	  
+	  let improvement = Math.abs(newCost - prevCost)
+	  if (improvement < 0.0001) break
   }
-  return { m: m, q: q }
+  return { m: m, q: q, iterations: numIterations}
 }
 
+function pointExists(x, y) {
+	for (let i = 0; i < scatter.x.length; i++) {
+		if (scatter.x[i] === x && scatter.y[i] === y)
+			return true
+	}
+	return false
+}
 
 function addPoint() {
-  newx = parseInt(document.getElementById('pointx').value)
-  newy = parseInt(document.getElementById('pointy').value)
+  let xstr = document.getElementById('pointx').value
+  let ystr = document.getElementById('pointy').value
+  if(!xstr || !ystr) {
+	  console.log('Empty input')
+	  return
+  }
+  let newx = Number(xstr)
+  let newy = Number(ystr)
+  
+  if (pointExists(newx, newy)) {
+	  console.log('Already exists '+newx+'  '+newy)
+	  return
+  }
+  
   scatter.x.push(newx)
   scatter.y.push(newy)
-  Plotly.newPlot(graphDiv, data);
-}
+  createGraph(scatter, currLine)
+  
+  //if (scatter.x <= 1) {
+//	  createGraph()
+//	  return 
+ // }
+  
+  let result = gradientDescent(scatter.x, scatter.y, true)
+  console.log('Gradient descent stopped after '+result.iterations+' iterations.   m: '+result.m+'  q: '+result.q)
+  
+  let m = result.m
+  let q = result.q
+  }
 
-function run() {
-  result = gradientDescent(scatter.x, scatter.y, 0.01, 1000)
-  console.log(`${result.m}   ${result.q}`)
+function getLine(m, q) {
   min = Math.min(...scatter.x)
-  max = Math.max(...scatter.y)
+  max = Math.max(...scatter.x)
+  
+  let line = {
+  x: [],
+  y: [],
+  mode: 'lines'
+  }
 
-  range = max - min
-  lineStart = min - range * 0.2
-  lineEnd = max + range * 0.2
-
+  range = (max - min) ? (max - min) : 1
+  lineStart = (min - range * 0.2) > 0 ? 0 : (min - range * 0.2)
+  lineEnd = (max + range * 0.2) < 0 ? 0 : (max + range * 0.2)
+  line.x = []
+  line.y = []
+  
   line.x.push(lineStart)
-  line.y.push(result.m * lineStart + result.q)
+  line.y.push(m * lineStart + q)
 
   line.x.push(lineEnd)
-  line.y.push(result.m * lineEnd + result.q)
+  line.y.push(m * lineEnd + q)
+  return line
+}
+
+function createGraph(scatter, line, rangeStart, rangeEnd) {
+	Plotly.newPlot(graphDiv, [scatter, line], layout, {responsive: true});
+}
+function createStaticGraph(scatter, line) {
+	let staticLayout = {
+	autosize: false,
+	xaxis: {
+		rangemode: 'tozero',
+		autorange: false
+	},
+	yaxis: {
+		rangemode: 'tozero',
+		autorange: false
+	}
+	}
+	Plotly.newPlot(graphDiv, [scatter, line], staticLayout, {responsive: true});
+}
+
+function runAnimation(){
+	console.log('Animating . . .')
+	createStaticGraph(scatter, currLine)
+	let result = gradientDescent(scatter.x, scatter.y, true)
+	console.log('Iterations required: '+result.iterations+'  m='+result.m+'  q='+result.q)
+	let steps = Math.ceil(result.iterations / 15)
+	gradientDescent(scatter.x, scatter.y, true)
+}
+
+function animateLine(m, q) {
+	let line = getLine(m,q)
+		  Plotly.animate(graphDiv,
+			{
+				data: [line],
+				traces: [1],
+				layout: {}
+			},
+			{
+				transition: {
+				duration: 1000
+			},
+				frame: {
+					duration: 1000,
+					redraw: true
+				}
+			}
+		  )
 }
