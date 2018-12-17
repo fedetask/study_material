@@ -236,10 +236,10 @@ function animateLine(m, q) {
 			},
 			{
 				transition: {
-				duration: 1000	
+				duration: 2000- Number(document.getElementById('myRange').value)	
 			},
 				frame: {
-					duration: 1000,
+					duration: 2000 - Number(document.getElementById('myRange').value),
 					redraw: true
 				}
 			}

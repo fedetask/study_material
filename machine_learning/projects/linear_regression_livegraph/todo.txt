@@ -1,4 +1,4 @@
 TODO:
-- set learning rate and termination method
-- remove points
--log something
+- [X] set learning rate and termination method
+- [?] remove points
+- [ ] log something
