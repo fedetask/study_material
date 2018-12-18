@@ -1,8 +1,8 @@
 graphDiv = 'myDiv'
 
 let scatter = {
-  x: [3, 4, 5, 6, 8, 10,],
-  y: [3, 5, 3.5, 7, 9.2, 9],
+  x: [1, 3, 4, 5, 6, 8, 10,],
+  y: [10, 3, 5, 3.5, 7, 9.2, 9],
   mode: 'markers',
   type: 'scatter',
   marker: {
@@ -26,7 +26,8 @@ readInput()
 result = gradientDescent(scatter.x, scatter.y, false, false)
 currLine = getLine(result.m, result.q)
 createGraph(scatter, currLine)
-printlog(pointsAsString())
+
+//printlog(pointsAsString())
 
 /* Our cost function is given by the sum of the squared errors:
  * for each (x,y), we calculate the hypothesis h(x) and the error h(x) - y
@@ -95,26 +96,31 @@ function gradientDescent(pointsx, pointsy, animate, log) {
   let m = 0;
   let q = 0;
   let numIterations = 0
-  clearLog()
-  if (log) {
-	  printlog(pointsAsString())
-	  printlog('Starting gradient descent: m = 0, q = 0')
-  }
+  let firstCost = cost(pointsx, pointsy, m, q)
+  //clearLog()
+  //if (log) {
+	  //printlog(pointsAsString())
+	  //printlog('Starting gradient descent: m = 0, q = 0')
+  //}
   
 	while (true) {
-	  if(animate){
-		animateLine(m,q)
-	  }
+
 	  let prevCost = cost(pointsx, pointsy, m, q) //Cost for the current values of m and q
 	  let updated = update(pointsx, pointsy, m, q) // Calculating new values for m and q
 	  let newCost = cost(pointsx, pointsy, updated.newm, updated.newq) // Cost after update
 	  
+	  if(animate && newCost < firstCost/5) {
+			if (numIterations % 50 === 0){
+  				animateLine(m, q, false)
+			}
+	  }
+	  
 	  numIterations ++
 	  
 	  while(newCost > prevCost) { // If the cost doesn't decrease, we reduce the learning rate
-		  printlog('LEARNING RATE TOO HIGH: COST IS INCREASING!')
+		  //printlog('LEARNING RATE TOO HIGH: COST IS INCREASING!')
 		  learningRate = learningRate/2
-		  printlog('LEARNING RATE DECREASED: '+learningRate)
+		  //printlog('LEARNING RATE DECREASED: '+learningRate)
 		  setLearningRate(''+learningRate)
 		  updated = update(pointsx, pointsy, m, q)
 		  newCost = cost(pointsx, pointsy, updated.newm, updated.newq) // Until new cost is lower
@@ -124,7 +130,7 @@ function gradientDescent(pointsx, pointsy, animate, log) {
 	  q = updated.newq	  
 	  currLine = getLine(m, q)
 	  let improv = Math.abs(newCost - prevCost)
-	  if(log)printlog('Iteration '+numIterations+' m = '+m.toFixed(3)+', q = '+q.toFixed(3)+', cost decreased by '+improv.toFixed(8))
+	  //if(log)printlog('Iteration '+numIterations+' m = '+m.toFixed(3)+', q = '+q.toFixed(3)+', cost decreased by '+improv.toFixed(8))
 	  
 	  if (improvement && improv <improvement) {
 		  console.log('Program finished because of improvement')
@@ -136,7 +142,10 @@ function gradientDescent(pointsx, pointsy, animate, log) {
 		  break
 	  }
   }
-  if(log)printlog('Finished gradient descent: m = '+m+'   q = '+q)
+  //if(log)printlog('Finished gradient descent: m = '+m+'   q = '+q)
+	if(animate) {
+  			animateLine(m, q, true)
+	}
   return { m: m, q: q, iterations: numIterations}
 }
 
@@ -181,10 +190,13 @@ function getLine(m, q) {
   max = Math.max(...scatter.x)
   
   let line = {
-  x: [],
-  y: [],
-  mode: 'lines',
-  name: 'Fitting'
+  	x: [],
+  	y: [],
+  	mode: 'lines',
+  	name: 'Fitting',
+  	line: {
+    	color: ''
+  	}
   }
 
   range = (max - min) ? (max - min) : 1
@@ -226,8 +238,9 @@ function runAnimation(){
 	gradientDescent(scatter.x, scatter.y, true, true)
 }
 
-function animateLine(m, q) {
+function animateLine(m, q, last) {
 	let line = getLine(m,q)
+	if (last) line.line={color: 'rgb(0,255,0)'}
 		  Plotly.animate(graphDiv,
 			{
 				data: [line],
@@ -304,3 +317,14 @@ function pointsAsString() {
 	}
 	return str
 }
+/*
+function resizeTextArea() {
+	let graph = document.getElementById('myDiv')
+	let textarea = document.createElement('textarea')
+	
+	graph.parentNode.insertBefore(textarea, graph.nextSibling);
+}
+
+function insertAfter(newNode, referenceNode) {
+    referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+}*/
