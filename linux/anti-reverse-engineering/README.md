@@ -1,4 +1,4 @@
-## How to protece your binary from reverse engineering
+## How to protect your binary from reverse engineering
 
 ## Tools
 
