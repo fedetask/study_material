@@ -9,12 +9,17 @@ import matplotlib.pyplot as plt
 fashion_mnist = keras.datasets.fashion_mnist
 class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
-
+# We have a training set and a testing set
 (train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
 
+# Scaling pixel values in the range [0, 1]
 train_images = train_images / 255.0
 test_images = test_images / 255.0
 
+# Creating the neural network:
+# Layer 1: Flattens the input 28x28 matrix in a 1x784 vector
+# Layer 2: Hidden layers, activation relu
+# Layer 3: Output layers with softmax
 model = keras.Sequential([
     keras.layers.Flatten(input_shape=(28, 28)),
     keras.layers.Dense(128, activation=tf.nn.relu),
@@ -22,6 +27,7 @@ model = keras.Sequential([
 ])
 
 accuracies = []
+# Training for different number of epochs
 for epochsnum in range(1,10):
     print ('using epochs: ', epochsnum)
     model.compile(optimizer=tf.train.AdamOptimizer(),
