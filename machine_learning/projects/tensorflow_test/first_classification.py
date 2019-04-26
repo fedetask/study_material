@@ -28,7 +28,7 @@ model = keras.Sequential([
 
 accuracies = []
 # Training for different number of epochs
-for epochsnum in range(1,10):
+for epochsnum in range(1,1):
     print ('using epochs: ', epochsnum)
     model.compile(optimizer=tf.train.AdamOptimizer(),
                   loss='sparse_categorical_crossentropy',
@@ -40,3 +40,14 @@ for epochsnum in range(1,10):
     accuracies.append(test_acc)
 
 print accuracies
+
+to_predict=1
+
+prediction = model.predict(np.expand_dims(test_images[to_predict], 0))
+
+max_idx = np.argmax(prediction[0])
+plt.figure()
+plt.imshow(train_images[to_predict])
+plt.title(class_names[max_idx])
+plt.show()
+
